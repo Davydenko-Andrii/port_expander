@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "dvr_port_exp.h"
 
 /* USER CODE END Includes */
 
@@ -52,7 +53,6 @@ static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin);
-void PCF8574_Toggle_Pin(I2C_HandleTypeDef *hi2c, uint8_t address, uint8_t pin);
 
 /* USER CODE END PFP */
 
@@ -97,12 +97,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t dat = 0;
-  uint8_t addr = 0;
   while (1)
   {
-	  pcf8574_toggle_pin(&hi2c2, 0x27, 0);
-	  HAL_Delay(300);
+	  setExpanderPin(&hi2c2, 0x27, 0);
+	  HAL_Delay(500);
+	  resetExpanderPin(&hi2c2, 0x27, 0);
+	  HAL_Delay(1000);
+	  setExpanderPort(&hi2c2, 0x27);
+	  HAL_Delay(500);
+	  resetExpanderPort(&hi2c2, 0x27);
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -201,14 +205,6 @@ void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin) {
 	HAL_I2C_Master_Transmit(hi2c, (addr << 1), &data, sizeof(data), HAL_MAX_DELAY);
 }
 
-void PCF8574_Toggle_Pin(I2C_HandleTypeDef *hi2c, uint8_t address, uint8_t pin)
-{
-  static uint8_t data = 0;
-
-  data ^= (1 << pin);
-
-  HAL_I2C_Master_Transmit(hi2c, (address << 1), &data, sizeof(data), HAL_MAX_DELAY);
-}
 /* USER CODE END 4 */
 
 /**
