@@ -1,91 +1,153 @@
 /*
- * port_expander.c
- *
- *  Created on: Mar 25, 2023
- *      Author: Andrii Davydenko
- */
+* port_expander.c
+*
+*  Created on: Mar 25, 2023
+*      Author: Andrii Davydenko
+*/
 
 #include "dvr_port_exp.h"
 
-RV_t initExpander();
-RV_t deinitExpander();
-RV_t setExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin)
+static struct {
+  uint8_t addr;
+  uint8_t port;
+  uint8_t is_init;
+} exp;
+
+I2C_HandleTypeDef hi2c;
+
+RV_t dvr_port_exp_init(I2C_HandleTypeDef *i2c, uint8_t addr)
 {
-	static uint8_t data = 0;
-	data |= (1 << pin);
+  hi2c = *i2c;
 
-	if (HAL_I2C_Master_Transmit(hi2c, (addr << 1), &data, sizeof(data), HAL_MAX_DELAY))
-	{
-		return RV_FAILURE;
-	}
+  exp.addr = (addr << 1);
+  exp.port = 0;
+  exp.is_init = 1;
 
-	return RV_SUCCESS;
+  return RV_SUCCESS;
 }
 
-RV_t resetExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin)
+RV_t dvr_port_exp_deinit()
 {
-	static uint8_t data = 0;
-	data &= ~(1 << pin);
+  exp.addr = 0;
+  exp.port = 0;
+  exp.is_init = 0;
 
-	if (HAL_I2C_Master_Transmit(hi2c, (addr << 1), &data, sizeof(data), HAL_MAX_DELAY))
-	{
-		return RV_FAILURE;
-	}
-
-	return RV_SUCCESS;
+  return RV_SUCCESS;
 }
 
-RV_t setExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr)
+RV_t dvr_port_exp_set_pin(uint8_t pin)
 {
-	for (uint8_t i = 0; i < 8; i++)
-	{
-		if (setExpanderPin(hi2c, addr, i))
-		{
-			return RV_FAILURE;
-		}
-	}
+  RV_t state = RV_SUCCESS;
+  do
+  {
+    if (pin > 7)
+    {
+      state = RV_FAILURE;
+      break;
+    }
 
-	return RV_SUCCESS;
+    exp.port |= (1 << pin);
+
+    if (HAL_I2C_Master_Transmit(&hi2c, exp.addr, &exp.port, sizeof(exp.port), HAL_MAX_DELAY))
+    {
+	  state = RV_FAILURE;
+    }
+
+  } while (0);
+
+  return state;
 }
 
-RV_t resetExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr)
+RV_t dvr_port_exp_reset_pin(uint8_t pin)
 {
-	for (uint8_t i = 0; i < 8; i++)
-	{
-		if (resetExpanderPin(hi2c, addr, i))
-		{
-			return RV_FAILURE;
-		}
-	}
+  RV_t state = RV_SUCCESS;
+  do
+  {
+    if (pin > 7)
+    {
+      state = RV_FAILURE;
+      break;
+    }
 
-	return RV_SUCCESS;
+    exp.port &= ~(1 << pin);
+
+    if (HAL_I2C_Master_Transmit(&hi2c, exp.addr, &exp.port, sizeof(exp.port), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+    }
+
+  } while (0);
+
+  return state;
 }
 
-RV_t readExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin, uint16_t *data)
+RV_t dvr_port_exp_set_port()
 {
-	*data = 0;
-	*data |= (uint16_t)(1 << pin);
+  RV_t state = RV_SUCCESS;
 
-	HAL_I2C_Master_Transmit(hi2c,  ((addr << 1) | 0x1), &data, sizeof(data), HAL_MAX_DELAY);
+  exp.port = 0xFF;
 
-	data = 0;
+  if (HAL_I2C_Master_Transmit(&hi2c, exp.addr, &exp.port, sizeof(exp.port), HAL_MAX_DELAY))
+  {
+    state = RV_FAILURE;
+  }
 
-	HAL_I2C_Master_Receive(hi2c, ((addr << 1) | 0x1), &data, sizeof(data), HAL_MAX_DELAY);
-
-	return RV_SUCCESS;
+  return state;
 }
 
-RV_t readExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin, uint16_t *data)
+RV_t dvr_port_exp_reset_port()
 {
-	for (uint8_t i = 0; i < 8; i++)
-	{
-		if (readExpanderPin(hi2c, addr, i, data[i]))
-		{
-			return RV_FAILURE;
-		}
-	}
+  RV_t state = RV_SUCCESS;
 
-	return RV_SUCCESS;
+  exp.port = 0x00;
+
+  if (HAL_I2C_Master_Transmit(&hi2c, exp.addr, &exp.port, sizeof(exp.port), HAL_MAX_DELAY))
+  {
+    state = RV_FAILURE;
+  }
+
+  return state;
+}
+
+RV_t dvr_port_exp_read_pin(uint8_t pin, uint8_t *data)
+{
+  RV_t state = RV_SUCCESS;
+  do
+  {
+    if (HAL_I2C_Master_Receive(&hi2c, (exp.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    if (pin > 7)
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    *data &= (1 << pin);
+
+  } while (0);
+
+  return state;
+}
+
+RV_t dvr_port_exp_read_port(uint8_t *data)
+{
+  RV_t state = RV_SUCCESS;
+
+  do
+  {
+    if (HAL_I2C_Master_Receive(&hi2c, (exp.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+  } while (0);
+
+  return state;
 }
 
 

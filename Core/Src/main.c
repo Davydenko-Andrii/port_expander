@@ -52,8 +52,6 @@ static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
-void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,21 +89,20 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-
-
+  dvr_port_exp_init(&hi2c2, 0x27);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  setExpanderPin(&hi2c2, 0x27, 0);
+	  dvr_port_exp_set_pin(0);
 	  HAL_Delay(500);
-	  resetExpanderPin(&hi2c2, 0x27, 0);
+	  dvr_port_exp_reset_pin(0);
 	  HAL_Delay(1000);
-	  setExpanderPort(&hi2c2, 0x27);
+	  dvr_port_exp_set_port();
 	  HAL_Delay(500);
-	  resetExpanderPort(&hi2c2, 0x27);
+	  dvr_port_exp_reset_port();
 	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
@@ -198,12 +195,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin) {
-	static uint8_t data = 0;
-	data ^= (1 << pin);
-
-	HAL_I2C_Master_Transmit(hi2c, (addr << 1), &data, sizeof(data), HAL_MAX_DELAY);
-}
 
 /* USER CODE END 4 */
 

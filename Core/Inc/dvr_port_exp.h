@@ -5,32 +5,19 @@
  *      Author: Andrii Davydenko
  */
 
-#ifndef DRV_PORT_EXP_H_
-#define DRV_PORT_EXP_H_
+#ifndef DVR_PORT_EXP_H_
+#define DVR_PORT_EXP_H_
 
+#include "common_types.h"
 #include "main.h"
 
-typedef enum
-{
-  RV_FAILURE = -3,
-  RV_NULLPTR,
-  RV_NOT_READY,
-  RV_SUCCESS
-} RV_t;
+RV_t dvr_port_exp_init(I2C_HandleTypeDef *i2c, uint8_t addr);
+RV_t dvr_port_exp_deinit();
+RV_t dvr_port_exp_set_pin(uint8_t pin);
+RV_t dvr_port_exp_reset_pin(uint8_t pin);
+RV_t dvr_port_exp_set_port();
+RV_t dvr_port_exp_reset_port();
+RV_t dvr_port_exp_read_pin(uint8_t pin, uint8_t *data);
+RV_t dvr_port_exp_read_port(uint8_t *data);
 
-typedef enum
-{
-	WRITE,
-	READ
-} MODE;
-
-RV_t initExpander();
-RV_t deinitExpander();
-RV_t setExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin);
-RV_t resetExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin);
-RV_t setExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr);
-RV_t resetExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr);
-RV_t readExpanderPin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin, uint16_t *data);
-RV_t readExpanderPort(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin, uint16_t *data);
-
-#endif // DRV_PORT_EXP_H_
+#endif // DVR_PORT_EXP_H_
