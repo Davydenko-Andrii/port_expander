@@ -100,9 +100,21 @@ int main(void)
 	  HAL_Delay(500);
 	  dvr_port_exp_reset_pin(0);
 	  HAL_Delay(1000);
-	  dvr_port_exp_set_port();
+	  dvr_port_exp_set_port(0xff);
 	  HAL_Delay(500);
-	  dvr_port_exp_reset_port();
+	  dvr_port_exp_reset_port(0xff);
+	  HAL_Delay(1000);
+      dvr_port_exp_set_port(PIN_0);
+	  HAL_Delay(100);
+	  dvr_port_exp_reset_port(PIN_0);
+	  HAL_Delay(100);
+	  dvr_port_exp_set_port(PIN_0);
+	  HAL_Delay(100);
+	  dvr_port_exp_reset_port(PIN_0);
+	  HAL_Delay(100);
+	  dvr_port_exp_set_port(PIN_0);
+	  HAL_Delay(100);
+	  dvr_port_exp_reset_port(PIN_0);
 	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
@@ -188,10 +200,14 @@ static void MX_I2C2_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
