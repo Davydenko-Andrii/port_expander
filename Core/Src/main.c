@@ -96,26 +96,26 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  dvr_port_exp_set_pin(0);
-	  HAL_Delay(500);
-	  dvr_port_exp_reset_pin(0);
-	  HAL_Delay(1000);
-	  dvr_port_exp_set_port(0xff);
-	  HAL_Delay(500);
-	  dvr_port_exp_reset_port(0xff);
-	  HAL_Delay(1000);
-      dvr_port_exp_set_port(PIN_0);
-	  HAL_Delay(100);
-	  dvr_port_exp_reset_port(PIN_0);
-	  HAL_Delay(100);
-	  dvr_port_exp_set_port(PIN_0);
-	  HAL_Delay(100);
-	  dvr_port_exp_reset_port(PIN_0);
-	  HAL_Delay(100);
-	  dvr_port_exp_set_port(PIN_0);
-	  HAL_Delay(100);
-	  dvr_port_exp_reset_port(PIN_0);
-	  HAL_Delay(1000);
+    dvr_port_exp_set_pin(0);
+    HAL_Delay(500);
+    dvr_port_exp_reset_pin(0);
+    HAL_Delay(1000);
+    dvr_port_exp_set_port(0xff);
+    HAL_Delay(500);
+    dvr_port_exp_reset_port(0xff);
+    HAL_Delay(1000);
+    dvr_port_exp_set_port(PIN_0);
+    HAL_Delay(100);
+    dvr_port_exp_reset_port(PIN_0);
+    HAL_Delay(100);
+    dvr_port_exp_set_port(PIN_0);
+    HAL_Delay(100);
+    dvr_port_exp_reset_port(PIN_0);
+    HAL_Delay(100);
+    dvr_port_exp_set_port(PIN_0);
+    HAL_Delay(100);
+    dvr_port_exp_reset_port(PIN_0);
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
