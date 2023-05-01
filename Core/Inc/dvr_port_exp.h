@@ -9,7 +9,6 @@
 #define DVR_PORT_EXP_H_
 
 #include "common_types.h"
-#include "main.h"
 #include <stdint.h>
 #include <stdbool.h>
 
