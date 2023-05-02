@@ -89,7 +89,7 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-  dvr_port_exp_init(&hi2c2, 0x27);
+  dvr_port_exp_init(0x27);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -249,6 +249,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+I2C_HandleTypeDef *get_i2c_handle()
+{
+  return &hi2c2;
+}
 
 /* USER CODE END 4 */
 

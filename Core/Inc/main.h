@@ -54,6 +54,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+I2C_HandleTypeDef *get_i2c_handle();
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

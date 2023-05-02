@@ -14,9 +14,8 @@
 typedef RV_t (*i2c_read)(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout);
 typedef RV_t (*i2c_write)(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout);
 
-I2C_HandleTypeDef hi2c;
-
-static struct {
+static struct
+{
   uint8_t addr;
   uint8_t port;
   uint8_t is_init;  
@@ -26,26 +25,36 @@ static struct {
 
 RV_t write(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout)
 {
-  if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c, dev_address, p_data, size, timeout))
+  RV_t state = RV_FAILURE;
+  do
   {
-    return RV_SUCCESS;
-  }
-  return RV_FAILURE;
+    if (HAL_OK == HAL_I2C_Master_Transmit(get_i2c_handle(), dev_address, p_data, size, timeout))
+    {
+      state = RV_SUCCESS;
+      break;
+    }
+  } while (0);
+  
+  return state;
 }
 
 RV_t read(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout)
 {
-  if (HAL_OK == HAL_I2C_Master_Receive(&hi2c, dev_address, p_data, size, timeout))
+  RV_t state = RV_FAILURE;
+  do
   {
-    return RV_SUCCESS;
-  }
-  return RV_FAILURE;
+    if (HAL_OK == HAL_I2C_Master_Receive(get_i2c_handle(), dev_address, p_data, size, timeout))
+    {
+      state = RV_SUCCESS;
+      break;
+    }
+  } while (0);
+  
+  return state;
 }
 
-RV_t dvr_port_exp_init(I2C_HandleTypeDef *i2c, uint8_t addr)
+RV_t dvr_port_exp_init(uint8_t addr)
 {
-  hi2c = *i2c;
-
   port_exp_descr.addr = (addr << 1);
   port_exp_descr.port = 0;
   port_exp_descr.is_init = 1;
