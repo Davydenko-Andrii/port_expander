@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "dvr_port_exp.h"
 
 /* USER CODE END Includes */
 
@@ -50,9 +51,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
-
-void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin);
-void PCF8574_Toggle_Pin(I2C_HandleTypeDef *hi2c, uint8_t address, uint8_t pin);
 
 /* USER CODE END PFP */
 
@@ -91,18 +89,63 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-
-
+  dvr_port_exp_init(0x27);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t dat = 0;
-  uint8_t addr = 0;
+  uint8_t data = 0;
   while (1)
   {
-	  pcf8574_toggle_pin(&hi2c2, 0x27, 0);
-	  HAL_Delay(300);
+    #ifdef TEST_1
+      dvr_port_exp_set_pin(0);
+      HAL_Delay(500);
+      dvr_port_exp_reset_pin(0);
+      HAL_Delay(1000);
+      dvr_port_exp_set_port(0xff);
+      HAL_Delay(500);
+      dvr_port_exp_reset_port(0xff);
+      HAL_Delay(1000);
+      dvr_port_exp_set_port(PIN_0);
+      HAL_Delay(100);
+      dvr_port_exp_reset_port(PIN_0);
+      HAL_Delay(100);
+      dvr_port_exp_set_port(PIN_0);
+      HAL_Delay(100);
+      dvr_port_exp_reset_port(PIN_0);
+      HAL_Delay(100);
+      dvr_port_exp_set_port(PIN_0);
+      HAL_Delay(100);
+      dvr_port_exp_reset_port(PIN_0);
+      HAL_Delay(1000);
+    #endif // TEST_1
+
+    #ifdef TEST_2
+      if (RV_SUCCESS == dvr_port_exp_read_pin(0, &data))
+      {
+        if (data == true)
+        {
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
+          HAL_Delay(1000);
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
+          HAL_Delay(500);
+        }
+      }
+    #endif // TEST_2
+
+    #define TEST_3
+    #ifdef TEST_3
+      if (RV_SUCCESS == dvr_port_exp_read_port(PIN_0, &data))
+      {
+        if (data)
+        {
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_SET);
+          HAL_Delay(1000);
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
+          HAL_Delay(500);
+        }
+      }
+    #endif // TEST_3
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -187,28 +230,31 @@ static void MX_I2C2_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
-void pcf8574_toggle_pin(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t pin) {
-	static uint8_t data = 0;
-	data ^= (1 << pin);
 
-	HAL_I2C_Master_Transmit(hi2c, (addr << 1), &data, sizeof(data), HAL_MAX_DELAY);
-}
-
-void PCF8574_Toggle_Pin(I2C_HandleTypeDef *hi2c, uint8_t address, uint8_t pin)
+I2C_HandleTypeDef *get_i2c_handle()
 {
-  static uint8_t data = 0;
-
-  data ^= (1 << pin);
-
-  HAL_I2C_Master_Transmit(hi2c, (address << 1), &data, sizeof(data), HAL_MAX_DELAY);
+  return &hi2c2;
 }
+
 /* USER CODE END 4 */
 
 /**
