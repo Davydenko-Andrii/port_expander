@@ -55,21 +55,42 @@ RV_t read(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout
 
 RV_t dvr_port_exp_init(uint8_t addr)
 {
-  port_exp_descr.addr = (addr << 1);
-  port_exp_descr.port = 0;
-  port_exp_descr.is_init = 1;
-  port_exp_descr.read = &read;
-  port_exp_descr.write = &write;
+  RV_t state = RV_SUCCESS;
+  
+  do
+  {
+    if (port_exp_descr.is_init)
+    {
+      state = RV_FAILURE;
+      break;
+    }
 
-  return RV_SUCCESS;
+    port_exp_descr.addr = (addr << 1);
+    port_exp_descr.port = 0;
+    port_exp_descr.is_init = 1;
+    port_exp_descr.read = &read;
+    port_exp_descr.write = &write;
+  } while (0);
+  
+  return state;
 }
 
 RV_t dvr_port_exp_deinit()
 {
+  RV_t state = RV_SUCCESS;
 
-  memset(&port_exp_descr, 0, sizeof(port_exp_descr));
+  do
+  {
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_FAILURE;
+      break;
+    }
 
-  return RV_SUCCESS;
+    memset(&port_exp_descr, 0, sizeof(port_exp_descr));
+  } while (0);
+
+  return state;
 }
 
 RV_t dvr_port_exp_set_pin(uint8_t pin)
@@ -77,6 +98,18 @@ RV_t dvr_port_exp_set_pin(uint8_t pin)
   RV_t state = RV_SUCCESS;
   do
   {
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
+
+    if (port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (pin > MAX_PIN_NUM)
     {
       state = RV_FAILURE;
@@ -100,6 +133,18 @@ RV_t dvr_port_exp_reset_pin(uint8_t pin)
   RV_t state = RV_SUCCESS;
   do
   {
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
+
+    if (port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (pin > MAX_PIN_NUM)
     {
       state = RV_FAILURE;
@@ -123,12 +168,29 @@ RV_t dvr_port_exp_set_port(uint8_t port)
 {
   RV_t state = RV_SUCCESS;
 
-  port_exp_descr.port |= port;
-
-  if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+  do
   {
-    state = RV_FAILURE;
-  }
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
+
+    if (port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
+    port_exp_descr.port |= port;
+
+    if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+  } while (0);
+
 
   return state;
 }
@@ -137,13 +199,29 @@ RV_t dvr_port_exp_reset_port(uint8_t port)
 {
   RV_t state = RV_SUCCESS;
 
-  port_exp_descr.port &= ~port;
-
-  if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+  do
   {
-    state = RV_FAILURE;
-  }
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
 
+    if (port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
+    port_exp_descr.port &= ~port;
+
+    if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+  } while (0);
+  
   return state;
 }
 
@@ -152,6 +230,18 @@ RV_t dvr_port_exp_read_pin(uint8_t pin, uint8_t *data)
   RV_t state = RV_SUCCESS;
   do
   {
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
+
+    if (port_exp_descr.read == NULL || port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (pin > MAX_PIN_NUM)
     {
       state = RV_FAILURE;
@@ -189,6 +279,18 @@ RV_t dvr_port_exp_read_port(uint8_t port, uint8_t *data)
 
   do
   {
+    if (!port_exp_descr.is_init)
+    {
+      state = RV_NOT_READY;
+      break;
+    }
+
+    if (port_exp_descr.read == NULL || port_exp_descr.write == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (RV_SUCCESS != dvr_port_exp_set_port(port))
     {
       state = RV_FAILURE;
