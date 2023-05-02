@@ -26,7 +26,7 @@ static struct {
 
 RV_t write(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout)
 {
-  if (HAL_I2C_Master_Transmit(&hi2c, dev_address, p_data, size, timeout))
+  if (HAL_OK == HAL_I2C_Master_Transmit(&hi2c, dev_address, p_data, size, timeout))
   {
     return RV_SUCCESS;
   }
@@ -76,9 +76,9 @@ RV_t dvr_port_exp_set_pin(uint8_t pin)
 
     port_exp_descr.port |= (1 << pin);
 
-    if (HAL_OK != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+    if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
     {
-	    state = RV_FAILURE;
+      state = RV_FAILURE;
     }
 
   } while (0);
@@ -99,7 +99,7 @@ RV_t dvr_port_exp_reset_pin(uint8_t pin)
 
     port_exp_descr.port &= ~(1 << pin);
 
-    if (HAL_OK != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+    if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
     {
       state = RV_FAILURE;
     }
@@ -116,7 +116,7 @@ RV_t dvr_port_exp_set_port(uint8_t port)
 
   port_exp_descr.port |= port;
 
-  if (port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+  if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
   {
     state = RV_FAILURE;
   }
@@ -130,7 +130,7 @@ RV_t dvr_port_exp_reset_port(uint8_t port)
 
   port_exp_descr.port &= ~port;
 
-  if (port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
+  if (RV_SUCCESS != port_exp_descr.write(port_exp_descr.addr, &port_exp_descr.port, sizeof(port_exp_descr.port), HAL_MAX_DELAY))
   {
     state = RV_FAILURE;
   }
@@ -149,7 +149,19 @@ RV_t dvr_port_exp_read_pin(uint8_t pin, uint8_t *data)
       break;
     }
 
-    if (HAL_OK != port_exp_descr.read((port_exp_descr.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    if (RV_SUCCESS != dvr_port_exp_set_pin((1 << pin)))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    if (RV_SUCCESS != port_exp_descr.read((port_exp_descr.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    if (RV_SUCCESS != dvr_port_exp_reset_pin((1 << pin)))
     {
       state = RV_FAILURE;
       break;
@@ -162,13 +174,25 @@ RV_t dvr_port_exp_read_pin(uint8_t pin, uint8_t *data)
   return state;
 }
 
-RV_t dvr_port_exp_read_port(uint8_t *data)
+RV_t dvr_port_exp_read_port(uint8_t port, uint8_t *data)
 {
   RV_t state = RV_SUCCESS;
 
   do
   {
-    if (HAL_OK != port_exp_descr.read((port_exp_descr.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    if (RV_SUCCESS != dvr_port_exp_set_port(port))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    if (RV_SUCCESS != port_exp_descr.read((port_exp_descr.addr | 0x1), data, sizeof(data), HAL_MAX_DELAY))
+    {
+      state = RV_FAILURE;
+      break;
+    }
+
+    if (RV_SUCCESS != dvr_port_exp_reset_port(port))
     {
       state = RV_FAILURE;
       break;
