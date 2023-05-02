@@ -28,6 +28,12 @@ RV_t write(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeou
   RV_t state = RV_FAILURE;
   do
   {
+    if (p_data == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (HAL_OK == HAL_I2C_Master_Transmit(get_i2c_handle(), dev_address, p_data, size, timeout))
     {
       state = RV_SUCCESS;
@@ -43,6 +49,12 @@ RV_t read(uint16_t dev_address, uint8_t *p_data, uint16_t size, uint32_t timeout
   RV_t state = RV_FAILURE;
   do
   {
+    if (p_data == NULL)
+    {
+      state = RV_NULLPTR;
+      break;
+    }
+
     if (HAL_OK == HAL_I2C_Master_Receive(get_i2c_handle(), dev_address, p_data, size, timeout))
     {
       state = RV_SUCCESS;
